@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Reseñas Google — NFC & QR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  :root{--bg:#f5f3ef;--surface:#fff;--surface2:#f0ece4;--text:#1a1916;--text2:#6b6760;--accent:#2563eb;--accent-light:#eff6ff;--success:#16a34a;--border:#e2ddd5;--radius:16px;--shadow:0 2px 12px rgba(0,0,0,.08)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;gap:12px}
+  .logo-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;font-family:'Syne',sans-serif}
+  header h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
+  header p{font-size:13px;color:var(--text2)}
+  .main{max-width:1100px;margin:0 auto;padding:40px 24px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  @media(max-width:768px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow)}
+  .card h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px}
+  .card>.subtitle{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.5}
+  label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;margin-top:16px}
+  label:first-of-type{margin-top:0}
+  input[type=text],input[type=url]{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--bg);color:var(--text);transition:border-color .15s;outline:none}
+  input:focus{border-color:var(--accent);background:#fff}
+  .hint{font-size:11.5px;color:var(--text2);margin-top:5px;line-height:1.4}
+
+  /* How-to steps */
+  .how-to{background:#f8faff;border:1.5px solid #c7d9ff;border-radius:12px;padding:16px 18px;margin-top:16px}
+  .how-to-title{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em}
+  .how-to-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:13px;color:var(--text);line-height:1.5}
+  .how-to-step:last-child{margin-bottom:0}
+  .step-num{width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .how-to code{background:#e8f0fe;padding:1px 6px;border-radius:4px;font-size:12px;color:#1a56db}
+  .finder-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 14px;background:var(--accent);color:#fff;border-radius:8px;font-size:12.5px;font-weight:500;text-decoration:none;border:none;cursor:pointer}
+  .finder-link:hover{background:#1d4ed8}
+
+  .status-box{border-radius:10px;padding:12px 16px;margin-top:14px;font-size:13px;line-height:1.6;display:none}
+  .status-box.success{background:#f0fdf4;border:1.5px solid #86efac;color:#15803d}
+  .status-box.error{background:#fef2f2;border:1.5px solid #fca5a5;color:#b91c1c}
+  .status-box.warning{background:#fffbeb;border:1.5px solid #fcd34d;color:#92400e}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s}
+  .btn-primary{background:var(--accent);color:#fff;width:100%;justify-content:center;margin-top:20px;font-size:15px;padding:14px}
+  .btn-primary:hover{background:#1d4ed8;transform:translateY(-1px)}
+  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);width:100%;justify-content:center;margin-top:10px}
+  .btn-secondary:hover{background:var(--border)}
+
+  .output-area{min-height:220px;display:flex;flex-direction:column;align-items:center;gap:16px}
+  .empty-state{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 20px;text-align:center;color:var(--text2)}
+  .empty-state svg{opacity:.3}
+  .empty-state p{font-size:14px}
+  #qr-output{display:none;width:100%;flex-direction:column;align-items:center;gap:16px}
+  #qr-container{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;display:inline-block}
+  #qr-container canvas,#qr-container img{display:block}
+  .url-block{width:100%}
+  .url-label{font-size:11px;color:var(--text2);margin-bottom:4px}
+  .url-preview{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px;word-break:break-all;font-size:11.5px;color:#15803d;font-family:monospace;line-height:1.5}
+  .test-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;color:#15803d;font-size:13px;font-weight:500;text-decoration:none;margin-top:8px}
+
+  /* NFC dark section */
+  .nfc-section{grid-column:1/-1;background:#0f172a;color:#fff;border-radius:var(--radius);padding:32px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+  @media(max-width:768px){.nfc-section{grid-template-columns:1fr;grid-column:1}}
+  .nfc-section h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;grid-column:1/-1}
+  .nfc-section>.desc{font-size:13px;color:#94a3b8;grid-column:1/-1;margin-bottom:8px;line-height:1.6}
+  .nfc-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:20px}
+  .nfc-card .tag{display:inline-block;background:rgba(99,102,241,.25);color:#a5b4fc;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+  .nfc-card h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:8px;color:#fff}
+  .nfc-card p{font-size:12.5px;color:#94a3b8;line-height:1.6}
+  .nfc-card .price{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-top:14px}
+  .nfc-card .price span{font-size:12px;color:#94a3b8;font-weight:400}
+
+  /* Stores */
+  .stores-section{grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+  .stores-section h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px}
+  .stores-section>.desc{font-size:13px;color:var(--text2);margin-bottom:20px}
+  .stores-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .store-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:all .15s}
+  .store-item:hover{border-color:var(--accent);background:var(--accent-light)}
+  .store-item .sname{font-size:13px;font-weight:500}
+  .store-item .surl{font-size:10px;color:var(--text2);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge-qr{font-size:10px;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:20px;align-self:flex-start;font-weight:500}
+  .no-stores{font-size:13px;color:var(--text2);text-align:center;padding:20px}
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+  h3.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);margin-bottom:12px}
+  .steps{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .step{display:flex;align-items:flex-start;font-size:13px;line-height:1.5;color:var(--text2)}
+  .step-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--accent);color:#fff;border-radius:50%;font-size:11px;font-weight:600;margin-right:8px;flex-shrink:0}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-icon">NFC</div>
+  <div>
+    <h1>Generador de Reseñas Google</h1>
+    <p>Ingresá el Place ID del local → genera QR y URL para chip NFC que van directo a dejar reseña</p>
+  </div>
+</header>
+
+<div class="main">
+  <div class="grid">
+
+    <!-- Formulario -->
+    <div class="card">
+      <h2>Configurar local</h2>
+      <p class="subtitle">Necesitás el Place ID oficial de Google (empieza con <code style="background:#e8f0fe;padding:1px 6px;border-radius:4px;font-size:12px;color:#1a56db">ChIJ...</code>). Seguí los pasos de abajo para obtenerlo en 30 segundos.</p>
+
+      <label>Nombre del local</label>
+      <input type="text" id="storeName" placeholder="Ej: Frich'n Fries Córdoba" />
+
+      <label>Place ID de Google (empieza con ChIJ...)</label>
+      <input type="text" id="placeId" placeholder="ChIJ..." />
+      <p class="hint">Pegá acá el Place ID que copiaste del buscador de abajo.</p>
+
+      <div class="how-to">
+        <div class="how-to-title">Cómo obtener el Place ID en 30 segundos</div>
+        <div class="how-to-step">
+          <span class="step-num">1</span>
+          <span>Hacé clic en el botón azul de abajo → se abre el buscador oficial de Google.</span>
+        </div>
+        <div class="how-to-step">
+          <span class="step-num">2</span>
+          <span>Escribí el nombre del local en el mapa → hacé clic en el marcador.</span>
+        </div>
+        <div class="how-to-step">
+          <span class="step-num">3</span>
+          <span>Aparece el Place ID debajo del nombre. Copialo (empieza con <code>ChIJ</code>).</span>
+        </div>
+        <div class="how-to-step">
+          <span class="step-num">4</span>
+          <span>Volvé acá, pegalo en el campo de arriba y generá el QR.</span>
+        </div>
+        <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder" target="_blank" class="finder-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+          Abrir buscador oficial de Place IDs
+        </a>
+      </div>
+
+      <div id="status-box" class="status-box"></div>
+
+      <button class="btn btn-primary" onclick="generate()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m4-3v.01M14 20h3m4-3v3"/></svg>
+        Generar QR y URL NFC
+      </button>
+    </div>
+
+    <!-- Output -->
+    <div class="card">
+      <h2>Código QR generado</h2>
+      <p class="subtitle">Este QR y la URL del chip NFC llevan directo a la pantalla de escribir reseña en Google.</p>
+      <div class="output-area">
+        <div class="empty-state" id="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m4-3v.01M14 20h3m4-3v3"/></svg>
+          <p>Completá el formulario<br>para generar el QR</p>
+        </div>
+        <div id="qr-output">
+          <div id="qr-container"></div>
+          <div class="url-block">
+            <p class="url-label">URL directa a reseñas (misma para QR y chip NFC):</p>
+            <div class="url-preview" id="url-display"></div>
+            <a id="test-link" href="#" target="_blank" class="test-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+              Probar link en el navegador
+            </a>
+          </div>
+          <button class="btn btn-primary" style="margin-top:4px" onclick="downloadQR()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Descargar QR (PNG)
+          </button>
+          <button class="btn btn-secondary" onclick="copyUrl()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copiar URL para chip NFC
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NFC Info -->
+    <div class="nfc-section">
+      <h2>Todo sobre los chips NFC</h2>
+      <p class="desc">Lo que necesitás saber para fabricar estos expositores de forma independiente.</p>
+      <div class="nfc-card">
+        <span class="tag">Hardware</span>
+        <h3>¿Necesito un chip por unidad?</h3>
+        <p>Sí, 1 chip NFC por expositor o tarjeta. El chip guarda la URL del local. Son reescribibles: si cambia el link, lo reprogramás en segundos con el celular.</p>
+        <div class="price">1 chip <span>por unidad</span></div>
+      </div>
+      <div class="nfc-card">
+        <span class="tag">Costo</span>
+        <h3>¿Cuánto cuesta cada chip?</h3>
+        <p>Chips <strong style="color:#fff">NTAG213</strong>: $0.15–$0.50 USD en packs de 100+. En MercadoLibre Argentina como "sticker NFC NTAG213". También en AliExpress.</p>
+        <div class="price">$0.15–0.50 <span>USD / chip</span></div>
+      </div>
+      <div class="nfc-card">
+        <span class="tag">Programación</span>
+        <h3>¿Cómo programo cada chip?</h3>
+        <p>App gratuita <strong style="color:#fff">NFC Tools</strong> (iOS/Android). Acercás el chip al teléfono → "Escribir" → "URL" → pegás la URL de esta herramienta → listo en 5 seg.</p>
+        <div class="price" style="font-size:14px;margin-top:10px;line-height:1.5">NFC Tools <span style="display:block">gratis · App Store y Play Store</span></div>
+      </div>
+    </div>
+
+    <!-- Locales guardados -->
+    <div class="stores-section">
+      <h2>Locales registrados</h2>
+      <p class="desc">Hacé clic en cualquier local para volver a generar su QR.</p>
+      <div class="stores-grid" id="stores-list"><div class="no-stores">Aún no hay locales guardados.</div></div>
+      <hr class="divider">
+      <h3 class="section-title">Flujo de producción</h3>
+      <div class="steps">
+        <div class="step"><span class="step-badge">1</span>Obtenés el Place ID del local usando el buscador oficial de Google (link en el formulario).</div>
+        <div class="step"><span class="step-badge">2</span>Pegás el Place ID acá → la app genera la URL directa a reseñas y el QR.</div>
+        <div class="step"><span class="step-badge">3</span>Descargás el QR e imprimís el diseño del expositor (300 DPI mínimo).</div>
+        <div class="step"><span class="step-badge">4</span>Comprás chips <strong>NTAG213</strong> en AliExpress o MercadoLibre en packs de 100+.</div>
+        <div class="step"><span class="step-badge">5</span>Programás cada chip con <strong>NFC Tools</strong> pegando la URL generada acá.</div>
+        <div class="step"><span class="step-badge">6</span>El cliente acerca el teléfono o escanea el QR → Google abre directo para escribir reseña.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let stores = JSON.parse(localStorage.getItem('nfc_stores_v3') || '[]');
+let currentUrl = '';
+
+function showStatus(msg, type) {
+  const b = document.getElementById('status-box');
+  b.className = 'status-box ' + type;
+  b.innerHTML = msg;
+  b.style.display = 'block';
+}
+
+function generate() {
+  const name = document.getElementById('storeName').value.trim();
+  const placeId = document.getElementById('placeId').value.trim();
+
+  if (!name) { showStatus('⚠ Ingresá el nombre del local.', 'warning'); return; }
+  if (!placeId) { showStatus('⚠ Ingresá el Place ID. Usá el link azul de arriba para obtenerlo.', 'warning'); return; }
+  if (!placeId.startsWith('ChIJ') && !placeId.startsWith('ChZJ')) {
+    showStatus('⚠ El Place ID debe empezar con <strong>ChIJ</strong>. Verificá que copiaste bien el ID del buscador de Google.', 'warning'); return;
+  }
+
+  const reviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+  currentUrl = reviewUrl;
+
+  const container = document.getElementById('qr-container');
+  container.innerHTML = '';
+  new QRCode(container, { text: reviewUrl, width: 200, height: 200, colorDark: '#1a1916', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
+
+  document.getElementById('url-display').textContent = reviewUrl;
+  document.getElementById('test-link').href = reviewUrl;
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('qr-output').style.display = 'flex';
+  showStatus('✓ <strong>QR generado correctamente.</strong> El link va directo a dejar reseña en Google.', 'success');
+
+  const existing = stores.findIndex(s => s.name === name);
+  const entry = { name, placeId, reviewUrl };
+  if (existing >= 0) stores[existing] = entry; else stores.push(entry);
+  localStorage.setItem('nfc_stores_v3', JSON.stringify(stores));
+  renderStores();
+}
+
+function downloadQR() {
+  const canvas = document.querySelector('#qr-container canvas');
+  if (!canvas) return;
+  const name = document.getElementById('storeName').value.trim() || 'qr';
+  const a = document.createElement('a');
+  a.download = name.replace(/\s+/g, '-').toLowerCase() + '-qr.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+function copyUrl() {
+  if (!currentUrl) return;
+  navigator.clipboard.writeText(currentUrl).then(() => {
+    const btn = event.target.closest('button');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ¡Copiado!';
+    setTimeout(() => btn.innerHTML = orig, 2000);
+  });
+}
+
+function loadStore(i) {
+  const s = stores[i];
+  document.getElementById('storeName').value = s.name;
+  document.getElementById('placeId').value = s.placeId;
+  generate();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderStores() {
+  const list = document.getElementById('stores-list');
+  if (!stores.length) { list.innerHTML = '<div class="no-stores">Aún no hay locales guardados.</div>'; return; }
+  list.innerHTML = stores.map((s, i) => `
+    <div class="store-item" onclick="loadStore(${i})">
+      <span class="sname">${s.name}</span>
+      <span class="surl">${s.reviewUrl}</span>
+      <span class="badge-qr">✓ QR + NFC listo</span>
+    </div>`).join('');
+}
+
+renderStores();
+</script>
+</body>
+</html>

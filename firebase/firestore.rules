@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Lectura pública de nfc_points (la landing necesita esto sin auth)
+    match /nfc_points/{pointId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Jerarquía de clientes — solo usuarios autenticados (dashboard)
+    match /clients/{clientId} {
+      allow read, write: if request.auth != null;
+
+      match /businesses/{businessId} {
+        allow read, write: if request.auth != null;
+
+        match /locations/{locationId} {
+          // La landing lee locations para obtener name, reviewUrl, whatsappNumber
+          allow read: if true;
+          allow write: if request.auth != null;
+
+          match /nfc_points/{pointId} {
+            allow read: if true;
+            allow write: if request.auth != null;
+          }
+        }
+      }
+    }
+
+    // Scans: cualquiera puede crear (landing los registra al cargar)
+    match /scans/{scanId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Feedback: cualquiera puede crear (landing lo guarda al enviar)
+    match /feedback/{feedbackId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+  }
+}
