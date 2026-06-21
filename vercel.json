@@ -2,6 +2,9 @@
   "buildCommand": "cd landing && npm install && npm run build",
   "outputDirectory": "landing/.output/public",
   "framework": null,
+  "env": {
+    "NITRO_PRESET": "static"
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
