@@ -27,7 +27,7 @@ const { el, isVisible } = useReveal({ threshold: 0.05 })
           </div>
 
           <!-- Headline -->
-          <h1 class="font-serif text-5xl font-bold leading-[1.08] tracking-tight text-ink sm:text-6xl lg:text-[68px]">
+          <h1 class="font-sans text-5xl font-bold leading-[1.08] tracking-tight text-ink sm:text-6xl lg:text-[68px]">
             Más reseñas<br>
             Google.<br>
             <em class="not-italic text-ink-2">Sin esfuerzo.</em>

@@ -22,7 +22,7 @@ const { el, isVisible } = useReveal()
           ]"
           :style="{ transitionDelay: `${i * 80}ms` }"
         >
-          <p class="font-serif text-3xl font-bold text-ink">{{ stat.value }}</p>
+          <p class="font-sans text-3xl font-bold text-ink">{{ stat.value }}</p>
           <p class="mt-0.5 text-sm text-ink-3">{{ stat.label }}</p>
         </div>
       </div>

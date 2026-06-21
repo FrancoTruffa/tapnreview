@@ -18,7 +18,7 @@ const { el, isVisible } = useReveal()
         </p>
 
         <!-- Headline -->
-        <h2 class="font-serif text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[56px]">
+        <h2 class="font-sans text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[56px]">
           Tu negocio merece<br>
           más reseñas.
         </h2>
