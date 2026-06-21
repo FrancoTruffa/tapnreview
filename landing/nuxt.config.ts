@@ -2,6 +2,10 @@ export default defineNuxtConfig({
   ssr: false,
   modules: ['@nuxtjs/tailwindcss'],
 
+  components: [
+    { path: '~/components', pathPrefix: false },
+  ],
+
   runtimeConfig: {
     public: {
       firebaseApiKey: '',
