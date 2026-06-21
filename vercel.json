@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd landing && npm install && npm run build",
+  "outputDirectory": "landing/.output/public",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
