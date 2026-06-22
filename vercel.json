@@ -1,10 +1,7 @@
 {
   "buildCommand": "cd landing && npm install && npm run build",
-  "outputDirectory": "landing/.output/public",
+  "outputDirectory": "landing/.vercel/output/static",
   "framework": null,
-  "env": {
-    "NITRO_PRESET": "static"
-  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
